@@ -12,9 +12,8 @@
       ></el-input>
 
       <el-button icon="el-icon-plus" type="primary" @click="handleAdd"
-      >添加
-      </el-button
-      >
+        >添加
+      </el-button>
     </div>
 
     <el-table
@@ -38,15 +37,14 @@
             icon="el-icon-edit"
             type="text"
             @click="handleEdit(scope.row)"
-          >修改
-          </el-button
-          >
+            >修改
+          </el-button>
           <el-button
             class="red"
             icon="el-icon-delete"
             type="text"
             @click="handleDelete(scope.row)"
-          >删除
+            >删除
           </el-button>
         </template>
       </el-table-column>
@@ -73,23 +71,23 @@
 </template>
 
 <script>
-import userApi from '../api/userApi';
-import dictApi from '../api/dictApi';
-import userDialog from '../dialog/userDialog';
+import userApi from "../api/userApi";
+import dictApi from "../api/dictApi";
+import userDialog from "../dialog/userDialog";
 
 export default {
   components: {
-    userDialog
+    userDialog,
   },
   data() {
     return {
       userData: [],
-      searchName: '',
+      searchName: "",
       pageNum: 1,
       pageSize: 8,
       count: 0,
       tableLoading: false,
-      flag: false
+      flag: false,
     };
   },
   mounted() {
@@ -102,7 +100,7 @@ export default {
       let params = {
         page: search ? 1 : this.pageNum,
         rows: this.pageSize,
-        username: this.searchName
+        username: this.searchName,
       };
       userApi
         .getUserList(params)
@@ -149,20 +147,20 @@ export default {
 
     // 删除
     handleDelete(rowData) {
-      this.$confirm('此操作将删除该用户, 是否继续?', '删除用户', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
+      this.$confirm("此操作将删除该用户, 是否继续?", "删除用户", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
       })
         .then(() => {
           let params = {
-            uid: rowData.uid
+            uid: rowData.uid,
           };
           userApi
             .deleteUser(params)
             .then((res) => {
               console.log(res);
-              this.$message.success('删除成功');
+              this.$message.success("删除成功");
               this.getUserData();
             })
             .catch((err) => {
@@ -170,9 +168,9 @@ export default {
             });
         })
         .catch(() => {
-          this.$message.info('已取消删除');
+          this.$message.info("已取消删除");
         });
-    }
-  }
+    },
+  },
 };
 </script>

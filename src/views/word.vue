@@ -27,9 +27,8 @@
       </el-select>
 
       <el-button icon="el-icon-plus" type="primary" @click="handleAdd"
-      >添加
-      </el-button
-      >
+        >添加
+      </el-button>
     </div>
 
     <el-table
@@ -44,7 +43,7 @@
       <el-table-column label="班级名称" prop="cname"></el-table-column>
       <el-table-column label="教材封面" prop="cover">
         <template slot-scope="scope">
-          <img :src="scope.row.cover" width="120px"/>
+          <img :src="scope.row.cover" width="120px" />
         </template>
       </el-table-column>
       <el-table-column align="center" label="操作" width="180">
@@ -53,15 +52,14 @@
             icon="el-icon-edit"
             type="text"
             @click="handleEdit(scope.row)"
-          >修改
-          </el-button
-          >
+            >修改
+          </el-button>
           <el-button
             class="red"
             icon="el-icon-delete"
             type="text"
             @click="handleDelete(scope.row)"
-          >删除
+            >删除
           </el-button>
         </template>
       </el-table-column>
@@ -88,37 +86,37 @@
 </template>
 
 <script>
-import bookApi from '../api/bookApi';
-import classApi from '../api/classApi';
-import bookDialog from '../dialog/bookDialog';
-import axios from 'axios';
+import bookApi from "../api/bookApi";
+import classApi from "../api/classApi";
+import bookDialog from "../dialog/bookDialog";
+import axios from "axios";
 
 export default {
   components: {
-    bookDialog
+    bookDialog,
   },
   data() {
     return {
-      searchName: '',
-      searchClassId: '',
+      searchName: "",
+      searchClassId: "",
       classOpt: [],
       tableData: [],
       pageNum: 1,
       pageSize: 3,
       count: 0,
       tableLoading: false,
-      flag: false
+      flag: false,
     };
   },
   computed: {
     delUrl() {
       // 获取设置的代理网址
       const base_url =
-        process.env.NODE_ENV === 'development'
+        process.env.NODE_ENV === "development"
           ? process.env.BASE_API
           : process.env.API_ROOT;
-      return base_url + '/delfile';
-    }
+      return base_url + "/delfile";
+    },
   },
   mounted() {
     this.getDataList();
@@ -132,7 +130,7 @@ export default {
         page: search ? 1 : this.pageNum,
         rows: this.pageSize,
         bname: this.searchName,
-        classid: this.searchClassId
+        classid: this.searchClassId,
       };
       bookApi
         .bookList(params)
@@ -152,7 +150,7 @@ export default {
     //获取mark类别做下拉菜单
     getClassList() {
       let params = {
-        dropList: true
+        dropList: true,
       };
       classApi
         .classList(params)
@@ -199,22 +197,22 @@ export default {
 
     // 删除
     handleDelete(rowData) {
-      this.$confirm('此操作将删除该用户, 是否继续?', '删除用户', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
+      this.$confirm("此操作将删除该用户, 是否继续?", "删除用户", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
       })
         .then(() => {
           let params = {
-            bid: rowData.bid
+            bid: rowData.bid,
           };
           bookApi
             .deletebook(params)
             .then((res) => {
-              let coverArr = rowData.cover.split('/');
+              let coverArr = rowData.cover.split("/");
               let pic = coverArr[coverArr.length - 1];
               let delparams = {
-                filename: pic
+                filename: pic,
               };
               console.log(delparams);
               // axios.delete(this.delUrl, { data: delparams }).then((res) => {
@@ -227,15 +225,15 @@ export default {
               //   }
               // });
               axios({
-                method: 'delete',
+                method: "delete",
                 url: this.delUrl,
-                data: delparams // 请求参数放在请求体
+                data: delparams, // 请求参数放在请求体
               })
                 .then((res) => {
                   if (res.data.code === 10000) {
-                    this.$message.success('图片删除成功');
+                    this.$message.success("图片删除成功");
                   } else {
-                    this.$message.warning('上传的图片未成功删除');
+                    this.$message.warning("上传的图片未成功删除");
                   }
                 })
                 .catch((err) => {
@@ -248,9 +246,9 @@ export default {
             });
         })
         .catch(() => {
-          this.$message.info('已取消删除');
+          this.$message.info("已取消删除");
         });
-    }
-  }
+    },
+  },
 };
 </script>
