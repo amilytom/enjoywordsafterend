@@ -136,6 +136,7 @@ a:active {
 
 .user-modal .el-dialog__body {
   max-height: 560px;
+  padding: 30px 40px;
   overflow-x: hidden;
   overflow-y: auto;
 }

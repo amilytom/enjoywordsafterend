@@ -2,6 +2,10 @@ import Vue from "vue";
 import App from "./App";
 import router from "./router";
 import store from "./store";
+import Global from "./utils/global";
+
+// 引入全局变量
+Vue.prototype.Global = Global;
 
 // 引入element-ui及默认主题
 import ElementUI from "element-ui";

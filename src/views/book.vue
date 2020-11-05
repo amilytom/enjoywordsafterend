@@ -43,7 +43,7 @@
       <el-table-column label="班级名称" prop="cname"></el-table-column>
       <el-table-column label="教材封面" prop="cover">
         <template slot-scope="scope">
-          <img :src="scope.row.cover" width="120px" />
+          <img :src="obtainCover(scope.row.cover)" width="120px" />
         </template>
       </el-table-column>
       <el-table-column align="center" label="操作" width="180">
@@ -111,11 +111,7 @@ export default {
   computed: {
     delUrl() {
       // 获取设置的代理网址
-      const base_url =
-        process.env.NODE_ENV === "development"
-          ? process.env.BASE_API
-          : process.env.API_ROOT;
-      return base_url + "/delfile";
+      return this.Global.base_url + "/delfile";
     },
   },
   mounted() {
@@ -145,6 +141,11 @@ export default {
           this.tableLoading = false;
           console.log(err);
         });
+    },
+
+    // 返回图片地址
+    obtainCover(val) {
+      return this.Global.base_url + val;
     },
 
     //获取mark类别做下拉菜单
@@ -215,15 +216,6 @@ export default {
                 filename: pic,
               };
               console.log(delparams);
-              // axios.delete(this.delUrl, { data: delparams }).then((res) => {
-              //   console.log(res);
-              //   debugger;
-              //   if (res.data.code === 10000) {
-              //     this.$message.success("删除成功");
-              //   } else {
-              //     this.$message.warning("上传的图片未成功删除");
-              //   }
-              // });
               axios({
                 method: "delete",
                 url: this.delUrl,

@@ -5,26 +5,10 @@
         v-model.trim="searchName"
         class="handle-input mr10"
         clearable
-        placeholder="搜索教材名称"
+        placeholder="搜索单词"
         @clear="queryClearfresh"
         @input="querySubmit"
-        @keyup.enter.native="querySubmit"
       ></el-input>
-
-      <el-select
-        v-model.trim="searchClassId"
-        class="mr10"
-        placeholder="请选择班级"
-        @change="classSwitch"
-      >
-        <el-option
-          v-for="item in classOpt"
-          :key="item.cid"
-          :label="item.cname"
-          :value="item.cid"
-        >
-        </el-option>
-      </el-select>
 
       <el-button icon="el-icon-plus" type="primary" @click="handleAdd"
         >添加
@@ -38,14 +22,27 @@
       border
       class="table"
     >
-      <el-table-column label="编号ID" prop="bid" sortable></el-table-column>
-      <el-table-column label="教材名称" prop="bname"></el-table-column>
-      <el-table-column label="班级名称" prop="cname"></el-table-column>
-      <el-table-column label="教材封面" prop="cover">
+      <el-table-column label="ID" prop="wid" sortable></el-table-column>
+      <el-table-column label="单词" prop="word"></el-table-column>
+      <el-table-column label="拼写" prop="spell"></el-table-column>
+      <el-table-column label="拼音" prop="voice">
         <template slot-scope="scope">
-          <img :src="scope.row.cover" width="120px" />
+          <img
+            :src="playpic"
+            width="20px"
+            @mouseout="pauseVoice($event, scope.row.word)"
+            @mouseover="playVoice($event, scope.row.word)"
+          />
+          <audio
+            :ref="scope.row.word"
+            :src="obtainVoice(scope.row.voice)"
+          ></audio>
         </template>
       </el-table-column>
+      <el-table-column label="复数" prop="plural"></el-table-column>
+      <el-table-column label="现在式" prop="doing"></el-table-column>
+      <el-table-column label="过去式" prop="done"></el-table-column>
+      <el-table-column label="创建时间" prop="createdAt"></el-table-column>
       <el-table-column align="center" label="操作" width="180">
         <template slot-scope="scope">
           <el-button
@@ -77,50 +74,45 @@
       </el-pagination>
     </div>
 
-    <book-dialog
+    <word-dialog
       v-if="flag"
-      ref="bookDialog"
+      ref="wordDialog"
       @submit-success="submitSuccess"
-    ></book-dialog>
+    ></word-dialog>
   </div>
 </template>
 
 <script>
-import bookApi from "../api/bookApi";
-import classApi from "../api/classApi";
-import bookDialog from "../dialog/bookDialog";
+import wordApi from "../api/wordApi";
+import wordDialog from "../dialog/wordDialog";
 import axios from "axios";
 
 export default {
   components: {
-    bookDialog,
+    wordDialog,
   },
   data() {
     return {
       searchName: "",
-      searchClassId: "",
-      classOpt: [],
       tableData: [],
       pageNum: 1,
-      pageSize: 3,
+      pageSize: 8,
       count: 0,
       tableLoading: false,
       flag: false,
+      voicePic: require("../assets/img/voice.gif"),
+      voiceplay: require("../assets/img/voiceplay.gif"),
+      playpic: require("../assets/img/voice.gif"),
     };
   },
   computed: {
     delUrl() {
       // 获取设置的代理网址
-      const base_url =
-        process.env.NODE_ENV === "development"
-          ? process.env.BASE_API
-          : process.env.API_ROOT;
-      return base_url + "/delfile";
+      return this.Global.base_url + "/delfile";
     },
   },
   mounted() {
     this.getDataList();
-    this.getClassList();
   },
   methods: {
     // 获取列表数据
@@ -129,11 +121,10 @@ export default {
       let params = {
         page: search ? 1 : this.pageNum,
         rows: this.pageSize,
-        bname: this.searchName,
-        classid: this.searchClassId,
+        word: this.searchName,
       };
-      bookApi
-        .bookList(params)
+      wordApi
+        .wordList(params)
         .then((res) => {
           //console.log(res);
           this.tableData = res.data.list;
@@ -147,20 +138,17 @@ export default {
         });
     },
 
-    //获取mark类别做下拉菜单
-    getClassList() {
-      let params = {
-        dropList: true,
-      };
-      classApi
-        .classList(params)
-        .then((res) => {
-          //console.log(res);
-          this.classOpt = res.data.list;
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+    obtainVoice(val) {
+      return this.Global.base_url + val;
+    },
+    playVoice(event, val) {
+      event.target.src = this.voiceplay;
+      this.$refs[val].play();
+    },
+
+    pauseVoice(event, val) {
+      event.target.src = this.voicePic;
+      this.$refs[val].pause();
     },
 
     // 分页导航
@@ -178,17 +166,12 @@ export default {
       this.getDataList(true);
     },
 
-    classSwitch(val) {
-      console.log(val);
-      this.getDataList(true);
-    },
-
     handleAdd() {
-      this.$refs.bookDialog.open(false);
+      this.$refs.wordDialog.open(false);
     },
 
     handleEdit(rowData) {
-      this.$refs.bookDialog.open(true, rowData);
+      this.$refs.wordDialog.open(true, rowData);
     },
 
     submitSuccess() {
@@ -204,26 +187,17 @@ export default {
       })
         .then(() => {
           let params = {
-            bid: rowData.bid,
+            wid: rowData.wid,
           };
-          bookApi
-            .deletebook(params)
+          wordApi
+            .deleteword(params)
             .then((res) => {
-              let coverArr = rowData.cover.split("/");
-              let pic = coverArr[coverArr.length - 1];
+              let voiceArr = rowData.voice.split("/");
+              let voicename = voiceArr[voiceArr.length - 1];
               let delparams = {
-                filename: pic,
+                filename: voicename,
               };
               console.log(delparams);
-              // axios.delete(this.delUrl, { data: delparams }).then((res) => {
-              //   console.log(res);
-              //   debugger;
-              //   if (res.data.code === 10000) {
-              //     this.$message.success("删除成功");
-              //   } else {
-              //     this.$message.warning("上传的图片未成功删除");
-              //   }
-              // });
               axios({
                 method: "delete",
                 url: this.delUrl,
@@ -231,9 +205,9 @@ export default {
               })
                 .then((res) => {
                   if (res.data.code === 10000) {
-                    this.$message.success("图片删除成功");
+                    this.$message.success("文件删除成功");
                   } else {
-                    this.$message.warning("上传的图片未成功删除");
+                    this.$message.warning("上传的文件未成功删除");
                   }
                 })
                 .catch((err) => {

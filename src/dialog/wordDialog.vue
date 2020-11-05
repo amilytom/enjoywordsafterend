@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     :close-on-click-modal="false"
-    :title="isEdit ? '编辑教材' : '新增教材'"
+    :title="isEdit ? '编辑单词' : '新增单词'"
     :visible.sync="dialogVisible"
     class="user-modal"
   >
@@ -9,30 +9,23 @@
       ref="addForm"
       :model="addForm"
       :rules="addFormRules"
-      label-width="100px"
+      label-width="80px"
     >
-      <el-form-item label="教材名称：" prop="bname">
+      <el-form-item label="单词：" prop="word">
         <el-input
-          v-model.trim="addForm.bname"
-          placeholder="请输入教材名称"
+          v-model.trim="addForm.word"
+          placeholder="请输入单词"
         ></el-input>
       </el-form-item>
-      <el-form-item label="班级名称：" prop="classid">
-        <el-select
-          v-model.trim="addForm.classid"
-          class="mr10"
-          placeholder="请选择班级"
-        >
-          <el-option
-            v-for="item in classOpt"
-            :key="item.cid"
-            :label="item.cname"
-            :value="item.cid"
-          >
-          </el-option>
-        </el-select>
+
+      <el-form-item label="拼写：" prop="spell">
+        <el-input
+          v-model.trim="addForm.spell"
+          placeholder="请输入拼写"
+        ></el-input>
       </el-form-item>
-      <el-form-item label="教材图片：" prop="cover">
+
+      <el-form-item label="发音：" prop="voice">
         <el-upload
           ref="upload"
           :action="uploadUrl"
@@ -44,8 +37,8 @@
           :limit="1"
           :on-exceed="handleExceed"
           :on-remove="handleRemove"
+          accept=".mp3,.wav,.wma"
           class="upload-demo"
-          list-type="picture"
         >
           <el-button slot="trigger" size="small" type="primary"
             >点击上传
@@ -58,7 +51,7 @@
             >上传到服务器
           </el-button>
           <div slot="tip" class="el-upload__tip">
-            只能上传jpg/png文件，且不超过2MB
+            只能上传音频文件，且不超过1MB
           </div>
         </el-upload>
         <!-- 自定义进度条 -->
@@ -68,6 +61,27 @@
           :stroke-width="16"
           class="progress"
         ></el-progress>
+      </el-form-item>
+
+      <el-form-item label="复数：" prop="plural">
+        <el-input
+          v-model.trim="addForm.plural"
+          placeholder="请输入复数"
+        ></el-input>
+      </el-form-item>
+
+      <el-form-item label="现在式：" prop="doing">
+        <el-input
+          v-model.trim="addForm.doing"
+          placeholder="请输入现在式"
+        ></el-input>
+      </el-form-item>
+
+      <el-form-item label="过去式：" prop="done">
+        <el-input
+          v-model.trim="addForm.done"
+          placeholder="请输入过去式"
+        ></el-input>
       </el-form-item>
     </el-form>
 
@@ -81,8 +95,7 @@
 </template>
 
 <script>
-import bookApi from "../api/bookApi";
-import classApi from "../api/classApi";
+import wordApi from "../api/wordApi";
 import axios from "axios";
 
 export default {
@@ -92,29 +105,25 @@ export default {
       dialogVisible: false,
       isEdit: false,
       addForm: {
-        bname: "",
-        classid: "",
-        cover: "",
+        word: "",
+        spell: "",
+        voice: "",
+        plural: "",
+        doing: "",
+        done: "",
       },
       addFormRules: {
-        bname: [
+        word: [
           {
             required: true,
-            message: "教材名称不能为空",
+            message: "单词不能为空",
             trigger: "blur",
           },
         ],
-        classid: [
+        spell: [
           {
             required: true,
-            message: "班级ID不能为空",
-            trigger: "blur",
-          },
-        ],
-        cover: [
-          {
-            required: true,
-            message: "教材封面不能为空",
+            message: "拼写不能为空",
             trigger: "blur",
           },
         ],
@@ -126,7 +135,7 @@ export default {
       editfile: {},
       isshow: false,
       progressPercent: 0,
-      bid: 0,
+      wid: 0,
     };
   },
   computed: {
@@ -134,9 +143,7 @@ export default {
       return this.Global.base_url + "/upload";
     },
   },
-  mounted() {
-    this.getClassList();
-  },
+  mounted() {},
   methods: {
     // 打开弹窗，第一个参数是否为编辑，第二参数传入的表单参数
     open(isEdit, rowData = {}) {
@@ -151,12 +158,12 @@ export default {
         if (isEdit) {
           this.fileList = [];
           this.assignmentAddForm(rowData);
-          let coverArr = rowData.cover.split("/");
-          console.log(coverArr);
-          this.$set(this.editfile, "name", coverArr[coverArr.length - 1]);
+          let voiceArr = rowData.voice.split("/");
+          //console.log(voiceArr);
+          this.$set(this.editfile, "name", voiceArr[voiceArr.length - 1]);
           this.$set(this.editfile, "url", this.Global.base_url + rowData.cover);
           this.fileList.push(this.editfile);
-          //console.log(this.fileList);
+          console.log(this.fileList);
           if (this.fileList.length > 0) {
             this.progressPercent = 100;
           }
@@ -171,36 +178,23 @@ export default {
     assignmentAddForm(rowData) {
       //console.log(rowData);
       this.addForm = {
-        bname: rowData.bname,
-        classid: rowData.bid,
-        cover: rowData.cover,
+        word: rowData.word,
+        spell: rowData.spell,
+        voice: rowData.voice,
+        plural: rowData.plural,
+        doing: rowData.doing,
+        done: rowData.done,
       };
-      this.bid = rowData.bid;
+      this.wid = rowData.wid;
       // 保存编辑时修改前用户对象的值
       this.editUserval = Object.assign({}, this.addForm);
     },
 
-    //获取class类别做下拉菜单
-    getClassList() {
-      let params = {
-        dropList: true,
-      };
-      classApi
-        .classList(params)
-        .then((res) => {
-          console.log(res);
-          this.classOpt = res.data.list;
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    },
-
     //上传前对文件大小进行校验
     beforeUpload(file) {
-      const isLt2M = file.size / 1024 / 1024 < 2;
+      const isLt2M = file.size / 1024 / 1024 < 1;
       if (!isLt2M) {
-        this.$message.error("上传文件大小大小不能超过 2MB!");
+        this.$message.error("上传文件大小大小不能超过 1MB!");
         return isLt2M;
       }
     },
@@ -215,9 +209,7 @@ export default {
     },
 
     handleExceed(files, fileList) {
-      this.$message.warning(
-        "只能上传一个文件。如需更改图片，请先删除当前图片！"
-      );
+      this.$message.warning("只能上传一个文件。如需更改，请先删除当前文件！");
     },
 
     handleRemove(file, fileList) {
@@ -242,8 +234,8 @@ export default {
         console.log(res);
         // fileName 文件名 1604578465238l.mp3
         // path 文件路径 http://127.0.0.1:3030/upload/1604578465238l.mp3
-        this.addForm.cover = "/upload/" + res.data.data.fileName;
-        this.$message.success("图片上传成功");
+        this.addForm.voice = "/upload/" + res.data.data.fileName;
+        this.$message.success("文件上传成功");
       });
     },
 
@@ -263,7 +255,7 @@ export default {
               this.editProject();
             }
           } else {
-            this.$message.warning("尚未上传图片");
+            this.$message.warning("尚未上传文件");
           }
         } else {
           this.$message.warning("请正确填写表单内容");
@@ -277,8 +269,8 @@ export default {
       this.btnLoading = true;
       let params = this.addForm;
       console.log(this.addForm);
-      bookApi
-        .insertbook(params)
+      wordApi
+        .insertword(params)
         .then((res) => {
           if (res.code === 10000) {
             this.$message.success("创建成功");
@@ -299,10 +291,10 @@ export default {
     // 编辑
     editProject() {
       this.btnLoading = true;
-      this.addForm.bid = this.bid;
+      this.addForm.wid = this.wid;
       let params = this.addForm;
-      bookApi
-        .editbook(params)
+      wordApi
+        .editword(params)
         .then((res) => {
           if (res.code === 10000) {
             this.$message.success("修改成功");
