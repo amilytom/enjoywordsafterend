@@ -78,7 +78,6 @@
 <script>
 import meanApi from "../api/meanApi";
 import meanDialog from "../dialog/meanDialog";
-import axios from "axios";
 
 export default {
   components: {

@@ -55,6 +55,12 @@ const router = new Router({
           meta: { title: "单词管理" },
         },
         {
+          path: "/wbook",
+          name: "WordBook",
+          component: () => import("../views/wordbook.vue"),
+          meta: { title: "教材单词" },
+        },
+        {
           path: "/speech",
           mame: "Speech",
           component: () => import("../views/speech.vue"),

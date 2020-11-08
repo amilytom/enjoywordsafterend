@@ -59,7 +59,7 @@ export default {
 
 .content-box {
   position: absolute;
-  left: 250px;
+  left: 210px;
   right: 0;
   top: 70px;
   bottom: 0;

@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     :close-on-click-modal="false"
-    :title="isEdit ? '编辑释义' : '新增释义'"
+    :title="isEdit ? '编辑试题' : '新增试题'"
     :visible.sync="dialogVisible"
     class="user-modal"
   >
@@ -11,50 +11,51 @@
       :rules="addFormRules"
       label-width="100px"
     >
-      <el-form-item label="英文单词：" prop="wordid">
+      <el-form-item label="标签记录：" prop="labelid">
         <el-select
-          v-model="addForm.wordid"
+          v-model="addForm.labelid"
           :loading="loading"
           :remote-method="remoteMethod"
           filterable
-          placeholder="请输入英文单词"
+          placeholder="请查询标签记录"
           remote
           reserve-keyword
+          style="width: 100%"
         >
           <el-option
-            v-for="item in options"
-            :key="item.value"
-            :label="item.word"
-            :value="item.wid"
+            v-for="item in LabelOpt"
+            :key="item.eid"
+            :label="item.label"
+            :value="item.eid"
           >
           </el-option>
         </el-select>
       </el-form-item>
 
-      <el-form-item label="单词词性：" prop="posid">
-        <el-select
-          v-model.trim="addForm.posid"
-          class="mr10"
-          placeholder="请选择词性"
-        >
-          <el-option
-            v-for="item in speechOpt"
-            :key="item.cid"
-            :label="item.posname"
-            :value="item.pid"
-          >
-            <span style="float: left">{{ item.pos }}</span>
-            <span style="float: right; color: #8492a6; font-size: 13px">{{
-              item.posname
-            }}</span>
-          </el-option>
-        </el-select>
-      </el-form-item>
-
-      <el-form-item label="单词释义：" prop="mean">
+      <el-form-item label="题目：" prop="question">
         <el-input
-          v-model.trim="addForm.mean"
-          placeholder="请输入单词释义"
+          v-model.trim="addForm.question"
+          :rows="2"
+          placeholder="请输入题目"
+          type="textarea"
+        ></el-input>
+      </el-form-item>
+
+      <el-form-item label="正确答案：" prop="answer">
+        <el-input
+          v-model.trim="addForm.answer"
+          :rows="2"
+          placeholder="请输入正确答案"
+          type="textarea"
+        ></el-input>
+      </el-form-item>
+
+      <el-form-item label="描述：" prop="description">
+        <el-input
+          v-model.trim="addForm.description"
+          :rows="2"
+          placeholder="请输入题目描述"
+          type="textarea"
         ></el-input>
       </el-form-item>
     </el-form>
@@ -69,9 +70,9 @@
 </template>
 
 <script>
-import wordApi from "../api/wordApi";
-import meanApi from "../api/meanApi";
-import speechApi from "../api/speechApi";
+import trainApi from "../api/trainApi";
+import testApi from "../api/testApi";
+import Cookies from "js-cookie";
 
 export default {
   name: "bookDialog",
@@ -80,45 +81,37 @@ export default {
       dialogVisible: false,
       isEdit: false,
       addForm: {
-        wordid: "",
-        posid: "",
-        mean: "",
+        labelid: "",
+        question: "",
+        answer: "",
+        isright: "",
+        description: "",
       },
       addFormRules: {
-        wordid: [
+        labelid: [
           {
             required: true,
-            message: "单词ID不能为空",
+            message: "标签不能为空",
             trigger: "blur",
           },
         ],
-        posid: [
+        question: [
           {
             required: true,
-            message: "词性ID不能为空",
-            trigger: "blur",
-          },
-        ],
-        mean: [
-          {
-            required: true,
-            message: "释义不能为空",
+            message: "题目不能为空",
             trigger: "blur",
           },
         ],
       },
       btnLoading: false,
       editUserval: [],
-      speechOpt: [],
-      mid: 0,
+      tid: 0,
       loading: false,
-      options: [],
+      LabelOpt: [],
     };
   },
   computed: {},
-  mounted() {
-    this.getSpeechList();
-  },
+  mounted() {},
   methods: {
     // 打开弹窗，第一个参数是否为编辑，第二参数传入的表单参数
     open(isEdit, rowData = {}) {
@@ -131,6 +124,17 @@ export default {
         // 如果市编辑状态需要在重置表单后，将传入的数据进行表单赋值
         if (isEdit) {
           this.assignmentAddForm(rowData);
+          this.LabelOpt = [];
+          let params = rowData.labelid;
+          trainApi
+            .gettrainById(params)
+            .then((res) => {
+              //console.log(res);
+              this.LabelOpt.push(res.data);
+            })
+            .catch((err) => {
+              console.log(err);
+            });
         }
       });
     },
@@ -139,29 +143,15 @@ export default {
     assignmentAddForm(rowData) {
       //console.log(rowData);
       this.addForm = {
-        wordid: rowData.wordid,
-        posid: rowData.posid,
-        mean: rowData.mean,
+        labelid: rowData.labelid,
+        question: rowData.question,
+        answer: rowData.answer,
+        isright: rowData.isright,
+        description: rowData.description,
       };
-      this.mid = rowData.mid;
+      this.tid = rowData.tid;
       // 保存编辑时修改前用户对象的值
       this.editUserval = Object.assign({}, this.addForm);
-    },
-
-    //获取class类别做下拉菜单
-    getSpeechList() {
-      let params = {
-        dropList: true,
-      };
-      speechApi
-        .speechList(params)
-        .then((res) => {
-          //console.log(res);
-          this.speechOpt = res.data.list;
-        })
-        .catch((err) => {
-          console.log(err);
-        });
     },
 
     remoteMethod(query) {
@@ -170,15 +160,15 @@ export default {
         let params = {
           page: 1,
           rows: 20,
-          word: query,
+          username: query,
         };
-        wordApi
-          .wordList(params)
+        trainApi
+          .trainList(params)
           .then((res) => {
             //console.log(res);
             this.loading = false;
             if (res.data.count > 0) {
-              this.options = res.data.list;
+              this.LabelOpt = res.data.list;
             }
           })
           .catch((err) => {
@@ -186,7 +176,7 @@ export default {
             this.loading = false;
           });
       } else {
-        this.options = [];
+        this.userOptions = [];
       }
     },
 
@@ -211,8 +201,8 @@ export default {
       this.btnLoading = true;
       let params = this.addForm;
       console.log(this.addForm);
-      meanApi
-        .insertmean(params)
+      testApi
+        .inserttest(params)
         .then((res) => {
           this.$message.success("创建成功");
           this.dialogVisible = false;
@@ -228,10 +218,11 @@ export default {
     // 编辑
     editProject() {
       this.btnLoading = true;
-      this.addForm.mid = this.mid;
+      this.addForm.tid = this.tid;
+      this.addForm.isover = 0;
       let params = this.addForm;
-      meanApi
-        .editmean(params)
+      testApi
+        .edittest(params)
         .then((res) => {
           this.$message.success("修改成功");
           this.dialogVisible = false;

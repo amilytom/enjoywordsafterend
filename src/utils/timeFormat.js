@@ -14,7 +14,7 @@ const timeFormat = {
     let date =
       standardDate.getDate() > 9
         ? standardDate.getDate()
-        : "0" + (standardDate.getMonth() + 1);
+        : "0" + standardDate.getDate();
     let hour =
       standardDate.getHours() > 9
         ? standardDate.getHours()

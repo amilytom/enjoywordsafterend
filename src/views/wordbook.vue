@@ -2,26 +2,22 @@
   <div class="container">
     <div class="handle-box">
       <el-input
-        v-model.trim="searchName"
+        v-model.trim="searchBook"
         class="handle-input mr10"
         clearable
-        placeholder="搜索记录"
+        placeholder="搜索教材"
         @clear="queryClearfresh"
         @input="querySubmit"
       ></el-input>
 
       <el-input
-        v-model.trim="searchQuestion"
+        v-model.trim="searchWord"
         class="handle-input mr10"
         clearable
-        placeholder="搜索题目"
+        placeholder="搜索单词"
         @clear="queryClearfresh"
         @input="querySubmit"
       ></el-input>
-
-      <el-button icon="el-icon-plus" type="primary" @click="handleAdd"
-        >添加
-      </el-button>
     </div>
 
     <el-table
@@ -31,21 +27,11 @@
       border
       class="table"
     >
-      <el-table-column label="ID" prop="mid" sortable></el-table-column>
-      <el-table-column label="标签" prop="label"></el-table-column>
-      <el-table-column label="题目" prop="question"></el-table-column>
-      <el-table-column label="错题次数" prop="errnum"></el-table-column>
-      <el-table-column label="用户解答" prop="respon"></el-table-column>
-      <el-table-column label="正确答案" prop="answer"></el-table-column>
-      <el-table-column label="创建时间" prop="createdAt"></el-table-column>
+      <el-table-column label="ID" prop="id" sortable></el-table-column>
+      <el-table-column label="单词" prop="word"></el-table-column>
+      <el-table-column label="教材" prop="bname"></el-table-column>
       <el-table-column align="center" label="操作" width="180">
         <template slot-scope="scope">
-          <el-button
-            icon="el-icon-edit"
-            type="text"
-            @click="handleEdit(scope.row)"
-            >修改
-          </el-button>
           <el-button
             class="red"
             icon="el-icon-delete"
@@ -68,33 +54,22 @@
       >
       </el-pagination>
     </div>
-
-    <mistake-dialog
-      v-if="flag"
-      ref="mistakeDialog"
-      @submit-success="submitSuccess"
-    ></mistake-dialog>
   </div>
 </template>
 
 <script>
-import mistakeApi from "../api/mistakeApi";
-import mistakeDialog from "../dialog/mistakeDialog";
+import wordbookbookApi from "../api/wordbookApi";
 
 export default {
-  components: {
-    mistakeDialog,
-  },
   data() {
     return {
-      searchName: "",
-      searchQuestion: "",
+      searchWord: "",
+      searchBook: "",
       tableData: [],
       pageNum: 1,
       pageSize: 8,
       count: 0,
       tableLoading: false,
-      flag: false,
     };
   },
   computed: {},
@@ -108,12 +83,11 @@ export default {
       let params = {
         page: search ? 1 : this.pageNum,
         rows: this.pageSize,
-        label: this.searchName,
-        question: this.searchQuestion,
-        isamend: 0,
+        word: this.searchWord,
+        bname: this.searchBook,
       };
-      mistakeApi
-        .mistakeList(params)
+      wordbookbookApi
+        .wordbookList(params)
         .then((res) => {
           //console.log(res);
           this.tableData = res.data.list;
@@ -142,18 +116,6 @@ export default {
       this.getDataList(true);
     },
 
-    handleAdd() {
-      this.$refs.mistakeDialog.open(false);
-    },
-
-    handleEdit(rowData) {
-      this.$refs.mistakeDialog.open(true, rowData);
-    },
-
-    submitSuccess() {
-      this.getDataList();
-    },
-
     // 删除
     handleDelete(rowData) {
       this.$confirm("此操作将删除该用户, 是否继续?", "删除用户", {
@@ -163,10 +125,10 @@ export default {
       })
         .then(() => {
           let params = {
-            mid: rowData.mid,
+            id: rowData.id,
           };
-          mistakeApi
-            .deletemistake(params)
+          wordbookbookApi
+            .deletewordbook(params)
             .then((res) => {
               console.log(res);
               this.$message.success("删除成功");

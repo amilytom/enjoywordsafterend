@@ -83,6 +83,11 @@ export default {
           title: "单词管理",
         },
         {
+          icon: "el-icon-picture",
+          index: "wbook",
+          title: "教材单词",
+        },
+        {
           icon: "el-icon-s-flag",
           index: "speech",
           title: "词性管理",
@@ -144,7 +149,7 @@ export default {
 }
 
 .sidebar-el-menu:not(.el-menu--collapse) {
-  width: 250px;
+  width: 210px;
 }
 
 .sidebar > ul {
