@@ -34,3 +34,11 @@ API 文档请参见 enjoywordsapicloud 文件夹
 api 访问地址是 http://localhost:3030
 
 快乐记单词后台管理系统访问地址是 http://localhost:8080
+
+## 后台截图
+
+![系统首页](screenshot/QQ图片20201108104315.png)
+
+![字典管理](screenshot/QQ截图20201108104350.png)
+
+![单词管理](screenshot/QQ截图20201108104408.png)
